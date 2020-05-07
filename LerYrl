@@ -1,37 +1,61 @@
 package tests;
 
-import org.apache.poi.poifs.filesystem.NotOLE2FileException;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.edge.EdgeDriver;
+
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class Teste {
 
+	private WebDriver driver;
 
-    public static void main(String[] args) throws IOException, InterruptedException, NotOLE2FileException {
+//Usando o WebDriverManager você NÃO precisa mais ficar colocando o executavel do driver, ele mesmo já baixa automaticamente para você
+	@BeforeClass
+	public static void setupClass() {
+		WebDriverManager.firefoxdriver().setup();
 
+	}
 
-        // Criando uma nova instância do Webdriver e abrindo a instância com Firefox
-        System.setProperty("webdriver.gecko.driver", "C:\\\\gecko\\geckodriver.exe");
-        WebDriver driver = new FirefoxDriver();
+	@Before
+	public void setupTest() {
+		driver = new FirefoxDriver();
+		driver.manage().window().maximize();
+		driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+	}
 
-        //Limpa o JAVA Garbage Collector para evitar erros durante o processo.
-        System.gc();
-        //FileInputStream fileconta1 = new FileInputStream(new File("C:/teste/teste.xlsx"));
-        FileInputStream fileconta2= new FileInputStream(new File("C:/teste/teste.xlsx"));
-        XSSFWorkbook workbookConta1 = new XSSFWorkbook(fileconta2);
-        XSSFSheet sheet = workbookConta1.getSheetAt(0);
-        sheet.getRow(0).getCell(0).getStringCellValue();
-        String url = driver.getCurrentUrl().toString();
+	@Test
+	public void abrindoBrowser() throws InterruptedException, IOException {
 
-        driver.get(url);
+		FileInputStream arquivoOficial = new FileInputStream(new File("C:/temp/teste.xlsx"));
 
-        workbookConta1.close();
-        fileconta2.close();
-    }
+		XSSFWorkbook lendoArquivo = new XSSFWorkbook(arquivoOficial);
+		System.out.println("O arquivo esta na pasta. \n");
+		
+		XSSFSheet sheet = lendoArquivo.getSheetAt(0);
+		System.out.println("Lendo a primeira Sheet. \n");
+
+		// Pegando os dados da primeira célula e da primeira coluna
+		String PegarUrlNaPlanilha = sheet.getRow(0).getCell(0).getStringCellValue();
+		System.out.println(sheet.getRow(0).getCell(0).getStringCellValue());
+
+		// Passando a url da planilha para o driver
+		driver.get(PegarUrlNaPlanilha);
+
+		Thread.sleep(5000);
+
+		// Fechando a planilha
+		arquivoOficial.close();
+		driver.quit();
+	}
+
 }
